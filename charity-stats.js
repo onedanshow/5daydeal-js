@@ -2,16 +2,16 @@ var startedCounting = false,
     charityJSON = null,
     requestCount = 0
 
-function runCounter() {
+function runCounter(start = 0, end) {
   startedCounting = true;
   $('[data-animate="count-up"]').each(function() {
     var $this = $(this),
-      countTo = $this.text();
+      countTo = end || $this.text();
 
     // DD: Prevent popping animation
     $this.css('width',$this.width() + 12)
 
-    $({ countNum: 0 }).animate({ countNum: countTo }, {
+    $({ countNum: start }).animate({ countNum: countTo }, {
       duration: 3000,
       easing: 'swing',
       step: function() {
@@ -48,8 +48,6 @@ function getCharityJSON() {
   requestCount++;
   // setTimeout(getCharityJSON, 600000)
 }
-
-function increment
 
 window.addEventListener('load',function() {
   if(typeof IntersectionObserver === "undefined") {
