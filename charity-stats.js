@@ -1,10 +1,11 @@
 var startedCounting = false,
     charityJSON = null,
-    requestCount = 0
+    requestCount = 0,
+    minutesBetweenUpdates = 10;
 
-function runCounter(start = 0, end) {
+function animateCounter(id, start = 0, end = null) {
   startedCounting = true;
-  $('[data-animate="count-up"]').each(function() {
+  $(`[data-stat="${id}"]`).each(function() {
     var $this = $(this),
       countTo = end || $this.text();
 
@@ -27,31 +28,65 @@ function runCounter(start = 0, end) {
 function startObserver() {
   var counterObserver = new IntersectionObserver(function(entries) {
     if(entries[0].isIntersecting === true && !startedCounting) {
-      runCounter();
+      animateCounter('meals')
+      animateCounter('education')
+      animateCounter('everything')
       counterObserver.disconnect();
     }
   }, { threshold: [1] });
   counterObserver.observe(document.querySelector(".charity-count-bar"));
 }
 
+// DD: Old code ported over
+function charity_ticker_driver(id, start, end, current = 0 , walk = 0){
+  var stepSize = Math.ceil( (end - start) / minutesBetweenUpdates )
+
+  if(current === 0) {
+    current = start;
+    walk = start;
+  }
+  walk = walk + stepSize
+
+  // normal step
+  if(current < end && walk <= end) {
+    if(( walk - current ) > stepSize) {
+      animateCounter( id, current, walk );
+      current = walk
+    }
+
+    setTimeout(function(){
+      charity_ticker_driver(id, start, end, current, walk);
+    }, 60000); // 1 min
+  }
+  // last step
+  else if(current < end && walk > end){
+    animateCounter(id, current, end );
+  }
+}
+
 function getCharityJSON() {
-  if(requestCount > 100) return;
+  if(requestCount > 10) return;
   console.log('Getting charity JSON')
-  fetch('https://www.5daydeal.com/charity-counter')
+  fetch('https://5daydeal.com/charity-counter')
     .then(function(response){ return response.text() })
     .then(function(html) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html,'text/html');
       charityJSON = JSON.parse(doc.getElementById('charity_counter_json').textContent)
-      console.log(charityJSON)
+      // console.log(charityJSON)
+      charity_ticker_driver('meals', charityJSON.meals_donated_previous, charityJSON.meals_donated)
+      charity_ticker_driver('education', charityJSON.education_sponsored_previous, charityJSON.education_sponsored)
+      charity_ticker_driver('meals', charityJSON.total_donations_previous, charityJSON.total_donations)
+      setTimeout( getCharityJSON, 600000) // 10 min
     })
   requestCount++;
-  // setTimeout(getCharityJSON, 600000)
 }
 
 window.addEventListener('load',function() {
   if(typeof IntersectionObserver === "undefined") {
-    runCounter()
+    animateCounter('meals')
+    animateCounter('education')
+    animateCounter('everything')
   } else {
     startObserver()
   }
