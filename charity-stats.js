@@ -37,7 +37,7 @@ function startObserver() {
 function getCharityJSON() {
   if(requestCount > 100) return;
   console.log('Getting charity JSON')
-  fetch('/charity-counter')
+  fetch('https://www.5daydeal.com/charity-counter')
     .then(function(response){ return response.text() })
     .then(function(html) {
       const parser = new DOMParser();
@@ -46,8 +46,10 @@ function getCharityJSON() {
       console.log(charityJSON)
     })
   requestCount++;
-  setTimeout(getCharityJSON, 600000)
+  // setTimeout(getCharityJSON, 600000)
 }
+
+function increment
 
 window.addEventListener('load',function() {
   if(typeof IntersectionObserver === "undefined") {
@@ -55,4 +57,5 @@ window.addEventListener('load',function() {
   } else {
     startObserver()
   }
+  getCharityJSON()
 })
